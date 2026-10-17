@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Zap,
 } from 'lucide-react';
+import { useCloud } from '../../context/CloudContext';
 
 export default function Sidebar({
   isOpen,
@@ -19,17 +20,21 @@ export default function Sidebar({
   isCollapsed,
   onToggleCollapse,
 }) {
+  const { services, invoices } = useCloud();
+  const unpaidCount = invoices.filter((i) => i.status === 'unpaid').length;
+
   const navItems = [
     {
       to: '/',
       label: 'Live Dashboard',
       icon: LayoutDashboard,
-      badge: 'Real-time',
+      badge: 'Live',
     },
     {
       to: '/services',
       label: 'Cloud Services',
       icon: Server,
+      badge: `${services.length}`,
     },
     {
       to: '/deploy',
@@ -41,6 +46,7 @@ export default function Sidebar({
       to: '/billing',
       label: 'Billing & Invoices',
       icon: Receipt,
+      badge: unpaidCount > 0 ? `${unpaidCount} Due` : undefined,
     },
   ];
 
