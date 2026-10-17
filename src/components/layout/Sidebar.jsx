@@ -74,7 +74,6 @@ export default function Sidebar({
       to: '/deploy',
       label: 'Deploy Instance',
       icon: PlusCircle,
-      highlight: true,
       functionName: 'cloudDeployNavigationFunction',
       onClick: cloudDeployNavigationFunction,
     },
@@ -112,10 +111,6 @@ export default function Sidebar({
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/20 shrink-0">
               <Activity className="w-5 h-5 text-white" />
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
-              </span>
             </div>
             {!isCollapsed && (
               <div className="flex flex-col truncate">
@@ -191,12 +186,6 @@ export default function Sidebar({
                         {item.badge && (
                           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
                             {item.badge}
-                          </span>
-                        )}
-                        {item.highlight && (
-                          <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                           </span>
                         )}
                       </div>
