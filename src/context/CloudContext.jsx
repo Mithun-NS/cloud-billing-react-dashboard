@@ -3,6 +3,36 @@ import initialMockData from '../data/mockData.json';
 
 const STORAGE_KEY = 'infrapulse_state_v1';
 
+const defaultNotifications = [
+  {
+    _id: 'notif_1',
+    title: 'Hypervisor Health Nominal',
+    message: 'Mumbai (ap-south-1) KVM cluster running with 18ms latency and 99.99% SLA.',
+    type: 'success', // 'success' | 'warning' | 'info' | 'alert'
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    read: false,
+    link: '/services',
+  },
+  {
+    _id: 'notif_2',
+    title: 'Automated Snapshot Verified',
+    message: 'Daily cryptographically signed backup completed for prod-db-postgres-cluster.',
+    type: 'info',
+    timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(),
+    read: false,
+    link: '/services',
+  },
+  {
+    _id: 'notif_3',
+    title: 'Monthly Run-Rate Statement',
+    message: 'Current run-rate is ₹20,050/mo. Next automated statement on Nov 01, 2026.',
+    type: 'warning',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
+    read: false,
+    link: '/billing',
+  },
+];
+
 const CloudContext = createContext(null);
 
 export function CloudProvider({ children }) {
@@ -11,12 +41,19 @@ export function CloudProvider({ children }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (!parsed.notifications || !Array.isArray(parsed.notifications)) {
+          parsed.notifications = defaultNotifications;
+        }
+        return parsed;
       }
     } catch (e) {
       console.error('Failed to load state from localStorage', e);
     }
-    return initialMockData;
+    return {
+      ...initialMockData,
+      notifications: defaultNotifications,
+    };
   });
 
   // Sync to localStorage whenever state changes
@@ -42,6 +79,17 @@ export function CloudProvider({ children }) {
     };
     return newLog;
   };
+
+  // Helper to construct a notification object
+  const createNotification = (title, message, type = 'info', link = null) => ({
+    _id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    title,
+    message,
+    type,
+    timestamp: new Date().toISOString(),
+    read: false,
+    link,
+  });
 
   // 1. Deploy / Provision a new instance
   const deployService = (serviceConfig) => {
@@ -83,6 +131,13 @@ export function CloudProvider({ children }) {
       `Instance deployed in ${newService.regionLabel} (${newService.specs.vcpu} vCPU, ${newService.specs.ramGb}GB RAM)`
     );
 
+    const notif = createNotification(
+      'New Instance Provisioned',
+      `${newService.name} is now live in ${newService.regionLabel} with IP ${newService.ipAddress}.`,
+      'success',
+      '/services'
+    );
+
     setData((prev) => {
       const updatedServices = [newService, ...prev.services];
       const newMonthlyRunRate = updatedServices
@@ -97,6 +152,7 @@ export function CloudProvider({ children }) {
           totalMonthlyRunRate: newMonthlyRunRate,
         },
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
 
@@ -125,6 +181,13 @@ export function CloudProvider({ children }) {
         `Instance power state changed to: ${newStatus}`
       );
 
+      const notif = createNotification(
+        `Instance Power: ${targetName}`,
+        `Node status transitioned to '${newStatus}' via hypervisor control.`,
+        newStatus === 'active' ? 'success' : 'warning',
+        '/services'
+      );
+
       const newMonthlyRunRate = updatedServices
         .filter((s) => s.status !== 'suspended')
         .reduce((sum, s) => sum + s.monthlyCost, 0);
@@ -137,6 +200,7 @@ export function CloudProvider({ children }) {
           totalMonthlyRunRate: newMonthlyRunRate,
         },
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
   };
@@ -165,6 +229,13 @@ export function CloudProvider({ children }) {
         `Specs dynamically scaled to: ${newSpecs.vcpu} vCPU, ${newSpecs.ramGb}GB RAM, ${newSpecs.diskGb}GB NVMe (₹${newMonthlyCost}/mo)`
       );
 
+      const notif = createNotification(
+        `Hardware Resized: ${targetName}`,
+        `Scaled to ${newSpecs.vcpu} vCPU, ${newSpecs.ramGb}GB RAM, ${newSpecs.diskGb}GB NVMe (₹${newMonthlyCost.toLocaleString()}/mo).`,
+        'info',
+        '/services'
+      );
+
       const newMonthlyRunRate = updatedServices
         .filter((s) => s.status !== 'suspended')
         .reduce((sum, s) => sum + s.monthlyCost, 0);
@@ -177,6 +248,7 @@ export function CloudProvider({ children }) {
           totalMonthlyRunRate: newMonthlyRunRate,
         },
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
   };
@@ -192,6 +264,13 @@ export function CloudProvider({ children }) {
         'Instance terminated and disk volumes wiped cleanly'
       );
 
+      const notif = createNotification(
+        `Instance Terminated`,
+        `Node ${srvToTerminate?.name || serviceId} permanently wiped and IPv4 released.`,
+        'alert',
+        '/services'
+      );
+
       const newMonthlyRunRate = updatedServices
         .filter((s) => s.status !== 'suspended')
         .reduce((sum, s) => sum + s.monthlyCost, 0);
@@ -204,6 +283,7 @@ export function CloudProvider({ children }) {
           totalMonthlyRunRate: newMonthlyRunRate,
         },
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
   };
@@ -246,6 +326,13 @@ export function CloudProvider({ children }) {
         }`
       );
 
+      const notif = createNotification(
+        `Invoice Paid: ${invoice.invoiceId}`,
+        `Payment of ₹${invoice.amount.toLocaleString()} successfully processed.`,
+        'success',
+        '/billing'
+      );
+
       success = true;
       message = `Invoice ${invoice.invoiceId} successfully paid!`;
 
@@ -257,6 +344,7 @@ export function CloudProvider({ children }) {
         },
         invoices: updatedInvoices,
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
 
@@ -276,6 +364,13 @@ export function CloudProvider({ children }) {
         `Credited ₹${rechargeAmount.toLocaleString()} via ${method}`
       );
 
+      const notif = createNotification(
+        'Wallet Recharged',
+        `Credited ₹${rechargeAmount.toLocaleString()} to prepaid balance via ${method}.`,
+        'success',
+        '/billing'
+      );
+
       return {
         ...prev,
         organization: {
@@ -283,16 +378,42 @@ export function CloudProvider({ children }) {
           walletBalance: newBalance,
         },
         auditLogs: [auditEntry, ...prev.auditLogs],
+        notifications: [notif, ...(prev.notifications || [])],
       };
     });
 
     return true;
   };
 
-  // 7. Reset to default initial state (helpful for testing)
+  // 7. Notification Center Handlers
+  const markAllNotificationsRead = () => {
+    setData((prev) => ({
+      ...prev,
+      notifications: (prev.notifications || []).map((n) => ({ ...n, read: true })),
+    }));
+  };
+
+  const dismissNotification = (notifId) => {
+    setData((prev) => ({
+      ...prev,
+      notifications: (prev.notifications || []).filter((n) => n._id !== notifId),
+    }));
+  };
+
+  const clearAllNotifications = () => {
+    setData((prev) => ({
+      ...prev,
+      notifications: [],
+    }));
+  };
+
+  // 8. Reset to default initial state (helpful for testing)
   const resetToDefaults = () => {
     localStorage.removeItem(STORAGE_KEY);
-    setData(initialMockData);
+    setData({
+      ...initialMockData,
+      notifications: defaultNotifications,
+    });
   };
 
   const value = {
@@ -302,12 +423,16 @@ export function CloudProvider({ children }) {
     invoices: data.invoices,
     auditLogs: data.auditLogs,
     referenceData: data.referenceData,
+    notifications: data.notifications || defaultNotifications,
     deployService,
     updateServiceStatus,
     resizeService,
     terminateService,
     payInvoice,
     topUpWallet,
+    markAllNotificationsRead,
+    dismissNotification,
+    clearAllNotifications,
     resetToDefaults,
   };
 
