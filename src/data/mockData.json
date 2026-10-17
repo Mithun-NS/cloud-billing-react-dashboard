@@ -1,0 +1,500 @@
+{
+  "organization": {
+    "_id": "670e1a4b9c1d2e3f4a5b6c7d",
+    "name": "Apex Cloud MSP (Prod)",
+    "slug": "apex-cloud-msp",
+    "tenantId": "tenant_ind_0091",
+    "tier": "Enterprise SLA",
+    "walletBalance": 12450.00,
+    "currency": "INR",
+    "currencySymbol": "₹",
+    "billingCycle": "Monthly (1st of month)",
+    "nextBillingDate": "2026-11-01T00:00:00.000Z",
+    "gstin": "27AABCU9603R1ZM",
+    "registeredState": "Maharashtra (27)",
+    "billingEmail": "finance@apexcloud.in",
+    "contactName": "Mithun N S",
+    "role": "Owner",
+    "totalMonthlyRunRate": 18450.00,
+    "bandwidthQuotaTb": 25.0,
+    "bandwidthUsedTb": 6.42
+  },
+  "services": [
+    {
+      "_id": "srv_670e201a1",
+      "name": "prod-k8s-master-01",
+      "type": "Compute VM",
+      "os": "Ubuntu 24.04 LTS",
+      "region": "ap-south-1",
+      "regionLabel": "Mumbai, India",
+      "ipAddress": "103.115.24.12",
+      "privateIp": "10.0.1.5",
+      "status": "active",
+      "specs": {
+        "vcpu": 4,
+        "ramGb": 16,
+        "diskGb": 160,
+        "bandwidthTb": 5.0
+      },
+      "metrics": {
+        "cpuPercent": 48.5,
+        "ramPercent": 64.2,
+        "uptimeDays": 42
+      },
+      "monthlyCost": 4800,
+      "hourlyCost": 6.67,
+      "autoRenew": true,
+      "createdAt": "2026-08-15T10:30:00.000Z",
+      "updatedAt": "2026-10-17T08:12:00.000Z"
+    },
+    {
+      "_id": "srv_670e201a2",
+      "name": "prod-db-postgres-cluster",
+      "type": "Managed Database",
+      "os": "Debian 12",
+      "region": "ap-south-1",
+      "regionLabel": "Mumbai, India",
+      "ipAddress": "103.115.24.18",
+      "privateIp": "10.0.4.18",
+      "status": "active",
+      "specs": {
+        "vcpu": 8,
+        "ramGb": 32,
+        "diskGb": 500,
+        "bandwidthTb": 10.0
+      },
+      "metrics": {
+        "cpuPercent": 62.1,
+        "ramPercent": 78.4,
+        "uptimeDays": 68
+      },
+      "monthlyCost": 9200,
+      "hourlyCost": 12.78,
+      "autoRenew": true,
+      "createdAt": "2026-07-20T14:15:00.000Z",
+      "updatedAt": "2026-10-17T09:00:00.000Z"
+    },
+    {
+      "_id": "srv_670e201a3",
+      "name": "edge-api-gateway-sg",
+      "type": "Compute VM",
+      "os": "Ubuntu 24.04 LTS",
+      "region": "ap-southeast-1",
+      "regionLabel": "Singapore",
+      "ipAddress": "139.180.201.44",
+      "privateIp": "10.2.0.12",
+      "status": "active",
+      "specs": {
+        "vcpu": 2,
+        "ramGb": 4,
+        "diskGb": 50,
+        "bandwidthTb": 3.0
+      },
+      "metrics": {
+        "cpuPercent": 24.0,
+        "ramPercent": 41.5,
+        "uptimeDays": 19
+      },
+      "monthlyCost": 1400,
+      "hourlyCost": 1.94,
+      "autoRenew": true,
+      "createdAt": "2026-09-28T09:00:00.000Z",
+      "updatedAt": "2026-10-17T07:45:00.000Z"
+    },
+    {
+      "_id": "srv_670e201a4",
+      "name": "backup-vault-frankfurt",
+      "type": "Block Storage",
+      "os": "NVMe Volume",
+      "region": "eu-central-1",
+      "regionLabel": "Frankfurt, Germany",
+      "ipAddress": "185.190.140.11",
+      "privateIp": "10.5.0.22",
+      "status": "active",
+      "specs": {
+        "vcpu": 0,
+        "ramGb": 0,
+        "diskGb": 1000,
+        "bandwidthTb": 2.0
+      },
+      "metrics": {
+        "cpuPercent": 5.2,
+        "ramPercent": 12.0,
+        "uptimeDays": 90
+      },
+      "monthlyCost": 1200,
+      "hourlyCost": 1.67,
+      "autoRenew": true,
+      "createdAt": "2026-06-10T12:00:00.000Z",
+      "updatedAt": "2026-10-17T06:30:00.000Z"
+    },
+    {
+      "_id": "srv_670e201a5",
+      "name": "staging-worker-node",
+      "type": "Compute VM",
+      "os": "Rocky Linux 9",
+      "region": "ap-south-1",
+      "regionLabel": "Mumbai, India",
+      "ipAddress": "103.115.24.89",
+      "privateIp": "10.0.2.14",
+      "status": "suspended",
+      "specs": {
+        "vcpu": 2,
+        "ramGb": 4,
+        "diskGb": 40,
+        "bandwidthTb": 2.0
+      },
+      "metrics": {
+        "cpuPercent": 0.0,
+        "ramPercent": 0.0,
+        "uptimeDays": 0
+      },
+      "monthlyCost": 1100,
+      "hourlyCost": 1.53,
+      "autoRenew": false,
+      "createdAt": "2026-09-05T18:20:00.000Z",
+      "updatedAt": "2026-10-16T15:00:00.000Z"
+    },
+    {
+      "_id": "srv_670e201a6",
+      "name": "analytics-etl-runner",
+      "type": "Compute VM",
+      "os": "Ubuntu 24.04 LTS",
+      "region": "ap-south-1",
+      "regionLabel": "Mumbai, India",
+      "ipAddress": "103.115.24.150",
+      "privateIp": "10.0.3.99",
+      "status": "provisioning",
+      "specs": {
+        "vcpu": 4,
+        "ramGb": 8,
+        "diskGb": 80,
+        "bandwidthTb": 4.0
+      },
+      "metrics": {
+        "cpuPercent": 12.0,
+        "ramPercent": 25.0,
+        "uptimeDays": 0
+      },
+      "monthlyCost": 2350,
+      "hourlyCost": 3.26,
+      "autoRenew": true,
+      "createdAt": "2026-10-17T10:45:00.000Z",
+      "updatedAt": "2026-10-17T11:00:00.000Z"
+    }
+  ],
+  "usageHistory": [
+    { "timestamp": "2026-10-17T00:00:00.000Z", "hour": "00:00", "cpuPercent": 36, "bandwidthGb": 14.2, "ramPercent": 52, "connections": 1840 },
+    { "timestamp": "2026-10-17T01:00:00.000Z", "hour": "01:00", "cpuPercent": 32, "bandwidthGb": 11.5, "ramPercent": 50, "connections": 1520 },
+    { "timestamp": "2026-10-17T02:00:00.000Z", "hour": "02:00", "cpuPercent": 28, "bandwidthGb": 9.8, "ramPercent": 48, "connections": 1290 },
+    { "timestamp": "2026-10-17T03:00:00.000Z", "hour": "03:00", "cpuPercent": 25, "bandwidthGb": 8.4, "ramPercent": 47, "connections": 1100 },
+    { "timestamp": "2026-10-17T04:00:00.000Z", "hour": "04:00", "cpuPercent": 38, "bandwidthGb": 18.0, "ramPercent": 54, "connections": 1420 },
+    { "timestamp": "2026-10-17T05:00:00.000Z", "hour": "05:00", "cpuPercent": 45, "bandwidthGb": 22.3, "ramPercent": 58, "connections": 2100 },
+    { "timestamp": "2026-10-17T06:00:00.000Z", "hour": "06:00", "cpuPercent": 54, "bandwidthGb": 31.8, "ramPercent": 63, "connections": 2980 },
+    { "timestamp": "2026-10-17T07:00:00.000Z", "hour": "07:00", "cpuPercent": 68, "bandwidthGb": 45.2, "ramPercent": 70, "connections": 3820 },
+    { "timestamp": "2026-10-17T08:00:00.000Z", "hour": "08:00", "cpuPercent": 74, "bandwidthGb": 58.6, "ramPercent": 75, "connections": 4650 },
+    { "timestamp": "2026-10-17T09:00:00.000Z", "hour": "09:00", "cpuPercent": 82, "bandwidthGb": 69.4, "ramPercent": 81, "connections": 5410 },
+    { "timestamp": "2026-10-17T10:00:00.000Z", "hour": "10:00", "cpuPercent": 79, "bandwidthGb": 64.1, "ramPercent": 78, "connections": 5120 },
+    { "timestamp": "2026-10-17T11:00:00.000Z", "hour": "11:00", "cpuPercent": 71, "bandwidthGb": 52.8, "ramPercent": 73, "connections": 4480 },
+    { "timestamp": "2026-10-17T12:00:00.000Z", "hour": "12:00", "cpuPercent": 65, "bandwidthGb": 47.0, "ramPercent": 69, "connections": 3950 },
+    { "timestamp": "2026-10-17T13:00:00.000Z", "hour": "13:00", "cpuPercent": 68, "bandwidthGb": 49.3, "ramPercent": 71, "connections": 4150 },
+    { "timestamp": "2026-10-17T14:00:00.000Z", "hour": "14:00", "cpuPercent": 76, "bandwidthGb": 61.5, "ramPercent": 76, "connections": 4890 },
+    { "timestamp": "2026-10-17T15:00:00.000Z", "hour": "15:00", "cpuPercent": 85, "bandwidthGb": 74.2, "ramPercent": 84, "connections": 5820 },
+    { "timestamp": "2026-10-17T16:00:00.000Z", "hour": "16:00", "cpuPercent": 81, "bandwidthGb": 68.0, "ramPercent": 80, "connections": 5300 },
+    { "timestamp": "2026-10-17T17:00:00.000Z", "hour": "17:00", "cpuPercent": 73, "bandwidthGb": 55.4, "ramPercent": 75, "connections": 4620 },
+    { "timestamp": "2026-10-17T18:00:00.000Z", "hour": "18:00", "cpuPercent": 66, "bandwidthGb": 46.8, "ramPercent": 69, "connections": 3900 },
+    { "timestamp": "2026-10-17T19:00:00.000Z", "hour": "19:00", "cpuPercent": 58, "bandwidthGb": 38.2, "ramPercent": 64, "connections": 3210 },
+    { "timestamp": "2026-10-17T20:00:00.000Z", "hour": "20:00", "cpuPercent": 52, "bandwidthGb": 30.1, "ramPercent": 60, "connections": 2740 },
+    { "timestamp": "2026-10-17T21:00:00.000Z", "hour": "21:00", "cpuPercent": 46, "bandwidthGb": 24.5, "ramPercent": 56, "connections": 2350 },
+    { "timestamp": "2026-10-17T22:00:00.000Z", "hour": "22:00", "cpuPercent": 40, "bandwidthGb": 18.9, "ramPercent": 53, "connections": 1980 },
+    { "timestamp": "2026-10-17T23:00:00.000Z", "hour": "23:00", "cpuPercent": 35, "bandwidthGb": 15.0, "ramPercent": 51, "connections": 1690 }
+  ],
+  "invoices": [
+    {
+      "invoiceId": "INV-2026-10-001",
+      "_id": "inv_670f11a01",
+      "date": "2026-10-01",
+      "dueDate": "2026-10-15",
+      "period": "Sep 01, 2026 - Sep 30, 2026",
+      "subtotal": 15635.59,
+      "taxBreakdown": {
+        "cgstRate": 9,
+        "cgstAmount": 1407.20,
+        "sgstRate": 9,
+        "sgstAmount": 1407.21,
+        "igstRate": 0,
+        "igstAmount": 0.00,
+        "totalTax": 2814.41
+      },
+      "amount": 18450.00,
+      "status": "paid",
+      "paidAt": "2026-10-01T06:12:00.000Z",
+      "paymentMethod": "Prepaid Wallet (Auto-Debit)",
+      "lineItems": [
+        { "description": "prod-k8s-master-01 (4 vCPU, 16GB RAM, 160GB NVMe)", "qty": 1, "unitPrice": 4067.80, "total": 4067.80 },
+        { "description": "prod-db-postgres-cluster (8 vCPU, 32GB RAM, 500GB NVMe)", "qty": 1, "unitPrice": 7796.61, "total": 7796.61 },
+        { "description": "edge-api-gateway-sg (2 vCPU, 4GB RAM, 50GB NVMe)", "qty": 1, "unitPrice": 1186.44, "total": 1186.44 },
+        { "description": "backup-vault-frankfurt (1000GB Block Storage)", "qty": 1, "unitPrice": 1016.95, "total": 1016.95 },
+        { "description": "Bandwidth Egress Pool (5.8 TB utilized)", "qty": 1, "unitPrice": 1567.79, "total": 1567.79 }
+      ]
+    },
+    {
+      "invoiceId": "INV-2026-10-ADDT",
+      "_id": "inv_670f11a02",
+      "date": "2026-10-10",
+      "dueDate": "2026-10-25",
+      "period": "Mid-cycle Additions & Burstable Resources",
+      "subtotal": 2745.76,
+      "taxBreakdown": {
+        "cgstRate": 9,
+        "cgstAmount": 247.12,
+        "sgstRate": 9,
+        "sgstAmount": 247.12,
+        "igstRate": 0,
+        "igstAmount": 0.00,
+        "totalTax": 494.24
+      },
+      "amount": 3240.00,
+      "status": "unpaid",
+      "paidAt": null,
+      "paymentMethod": "Pending Settlement",
+      "lineItems": [
+        { "description": "staging-worker-node Burst Allocation", "qty": 1, "unitPrice": 932.20, "total": 932.20 },
+        { "description": "Reserved Public Static IPv4 Quota (x4)", "qty": 4, "unitPrice": 338.98, "total": 1355.93 },
+        { "description": "Anti-DDoS Scrubbing Layer (Enterprise Protection)", "qty": 1, "unitPrice": 457.63, "total": 457.63 }
+      ]
+    },
+    {
+      "invoiceId": "INV-2026-09-002",
+      "_id": "inv_670f11a03",
+      "date": "2026-09-01",
+      "dueDate": "2026-09-15",
+      "period": "Aug 01, 2026 - Aug 31, 2026",
+      "subtotal": 14576.27,
+      "taxBreakdown": {
+        "cgstRate": 9,
+        "cgstAmount": 1311.86,
+        "sgstRate": 9,
+        "sgstAmount": 1311.87,
+        "igstRate": 0,
+        "igstAmount": 0.00,
+        "totalTax": 2623.73
+      },
+      "amount": 17200.00,
+      "status": "paid",
+      "paidAt": "2026-09-01T04:30:00.000Z",
+      "paymentMethod": "HDFC Corporate NetBanking",
+      "lineItems": [
+        { "description": "Cloud Compute & DB Infrastructure Tier", "qty": 1, "unitPrice": 12500.00, "total": 12500.00 },
+        { "description": "Global CDN & Transit Network (4.2 TB)", "qty": 1, "unitPrice": 2076.27, "total": 2076.27 }
+      ]
+    },
+    {
+      "invoiceId": "INV-2026-08-003",
+      "_id": "inv_670f11a04",
+      "date": "2026-08-01",
+      "dueDate": "2026-08-15",
+      "period": "Jul 01, 2026 - Jul 31, 2026",
+      "subtotal": 13644.07,
+      "taxBreakdown": {
+        "cgstRate": 9,
+        "cgstAmount": 1227.96,
+        "sgstRate": 9,
+        "sgstAmount": 1227.97,
+        "igstRate": 0,
+        "igstAmount": 0.00,
+        "totalTax": 2455.93
+      },
+      "amount": 16100.00,
+      "status": "paid",
+      "paidAt": "2026-08-01T05:00:00.000Z",
+      "paymentMethod": "Corporate Mastercard •••• 4829",
+      "lineItems": [
+        { "description": "Base Cloud Instances & Volume Storage", "qty": 1, "unitPrice": 13644.07, "total": 13644.07 }
+      ]
+    }
+  ],
+  "auditLogs": [
+    {
+      "_id": "log_101",
+      "timestamp": "2026-10-17T09:14:00.000Z",
+      "action": "SERVER_REBOOT",
+      "target": "prod-k8s-master-01",
+      "actor": "Mithun N S (Owner)",
+      "ip": "103.21.144.18",
+      "status": "success",
+      "details": "Graceful ACPI reboot triggered via Web Console"
+    },
+    {
+      "_id": "log_102",
+      "timestamp": "2026-10-17T04:00:00.000Z",
+      "action": "AUTO_SNAPSHOT",
+      "target": "prod-db-postgres-cluster",
+      "actor": "System Automation Cron",
+      "ip": "127.0.0.1",
+      "status": "success",
+      "details": "Point-in-time NVMe storage snapshot created (Size: 312 GB)"
+    },
+    {
+      "_id": "log_103",
+      "timestamp": "2026-10-16T18:45:00.000Z",
+      "action": "SERVER_SUSPEND",
+      "target": "staging-worker-node",
+      "actor": "Mithun N S (Owner)",
+      "ip": "103.21.144.18",
+      "status": "success",
+      "details": "Instance powered off to save compute quotas"
+    },
+    {
+      "_id": "log_104",
+      "timestamp": "2026-10-15T14:22:10.000Z",
+      "action": "WALLET_TOPUP",
+      "target": "Wallet Balance",
+      "actor": "Billing Team",
+      "ip": "103.21.144.18",
+      "status": "success",
+      "details": "Recharged ₹10,000.00 via NetBanking (Txn Ref: TXN994821)"
+    },
+    {
+      "_id": "log_105",
+      "timestamp": "2026-10-14T11:05:00.000Z",
+      "action": "API_KEY_ROTATE",
+      "target": "live_ak_99x",
+      "actor": "Mithun N S (Owner)",
+      "ip": "103.21.144.18",
+      "status": "success",
+      "details": "API Key rotated with Scope: services:read,write"
+    }
+  ],
+  "referenceData": {
+    "regions": [
+      {
+        "id": "ap-south-1",
+        "name": "Mumbai, India",
+        "flag": "🇮🇳",
+        "latency": "18ms",
+        "tier": "Tier-4 Datacenter",
+        "zones": ["ap-south-1a", "ap-south-1b"]
+      },
+      {
+        "id": "ap-southeast-1",
+        "name": "Singapore",
+        "flag": "🇸🇬",
+        "latency": "45ms",
+        "tier": "Tier-3 Datacenter",
+        "zones": ["ap-southeast-1a", "ap-southeast-1b"]
+      },
+      {
+        "id": "eu-central-1",
+        "name": "Frankfurt, Germany",
+        "flag": "🇩🇪",
+        "latency": "112ms",
+        "tier": "ISO 27001 Certified",
+        "zones": ["eu-central-1a", "eu-central-1b"]
+      },
+      {
+        "id": "us-east-1",
+        "name": "N. Virginia, USA",
+        "flag": "🇺🇸",
+        "latency": "185ms",
+        "tier": "Tier-4 Datacenter",
+        "zones": ["us-east-1a", "us-east-1b"]
+      }
+    ],
+    "osImages": [
+      {
+        "id": "ubuntu-24",
+        "name": "Ubuntu 24.04 LTS",
+        "version": "Noble Numbat",
+        "icon": "ubuntu",
+        "arch": "x86_64",
+        "isPopular": true
+      },
+      {
+        "id": "debian-12",
+        "name": "Debian 12",
+        "version": "Bookworm",
+        "icon": "debian",
+        "arch": "x86_64"
+      },
+      {
+        "id": "rocky-9",
+        "name": "Rocky Linux 9",
+        "version": "RHEL-Compatible",
+        "icon": "rocky",
+        "arch": "x86_64"
+      },
+      {
+        "id": "windows-2022",
+        "name": "Windows Server 2022",
+        "version": "Standard Edition",
+        "icon": "windows",
+        "arch": "x86_64",
+        "licenseSurcharge": 800
+      }
+    ],
+    "computeTiers": [
+      {
+        "id": "c-nano",
+        "name": "General Nano",
+        "vcpu": 1,
+        "ramGb": 1,
+        "diskGb": 25,
+        "bandwidthTb": 1.0,
+        "monthlyPrice": 450,
+        "hourlyPrice": 0.62
+      },
+      {
+        "id": "c-micro",
+        "name": "General Micro",
+        "vcpu": 1,
+        "ramGb": 2,
+        "diskGb": 40,
+        "bandwidthTb": 2.0,
+        "monthlyPrice": 800,
+        "hourlyPrice": 1.11
+      },
+      {
+        "id": "c-standard",
+        "name": "Compute Standard",
+        "vcpu": 2,
+        "ramGb": 4,
+        "diskGb": 80,
+        "bandwidthTb": 4.0,
+        "monthlyPrice": 1500,
+        "hourlyPrice": 2.08,
+        "isPopular": true
+      },
+      {
+        "id": "c-pro",
+        "name": "Compute Pro",
+        "vcpu": 4,
+        "ramGb": 8,
+        "diskGb": 160,
+        "bandwidthTb": 6.0,
+        "monthlyPrice": 2950,
+        "hourlyPrice": 4.10
+      },
+      {
+        "id": "c-enterprise",
+        "name": "High-Memory Pro",
+        "vcpu": 8,
+        "ramGb": 16,
+        "diskGb": 320,
+        "bandwidthTb": 10.0,
+        "monthlyPrice": 5800,
+        "hourlyPrice": 8.05
+      },
+      {
+        "id": "c-max",
+        "name": "Cluster-Max Heavy",
+        "vcpu": 8,
+        "ramGb": 32,
+        "diskGb": 500,
+        "bandwidthTb": 15.0,
+        "monthlyPrice": 9200,
+        "hourlyPrice": 12.78
+      }
+    ]
+  }
+}

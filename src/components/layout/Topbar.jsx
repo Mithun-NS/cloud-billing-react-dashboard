@@ -10,18 +10,21 @@ import {
   ExternalLink,
   Shield,
   User,
+  Wallet,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../common/Button';
+import { useCloud } from '../../context/CloudContext';
 
 export default function Topbar({
   onOpenSidebar,
-  currentOrg = 'Apex Cloud MSP (Prod)',
+  currentOrg,
   onOrgChange,
 }) {
+  const { organization } = useCloud();
   const [showOrgDropdown, setShowOrgDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [activeOrg, setActiveOrg] = useState(currentOrg);
+  const [activeOrg, setActiveOrg] = useState(currentOrg || organization.name);
 
   const orgs = [
     { id: 'org_1', name: 'Apex Cloud MSP (Prod)', tier: 'Enterprise Tier', region: 'Mumbai' },
@@ -119,6 +122,18 @@ export default function Topbar({
 
       {/* Right section: Quick actions, notifications, user profile */}
       <div className="flex items-center gap-3">
+        {/* Wallet Balance Pill */}
+        <Link
+          to="/billing"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-medium transition-all"
+          title="Prepaid Credit Balance"
+        >
+          <Wallet className="w-3.5 h-3.5" />
+          <span className="font-mono font-bold">
+            ₹{organization.walletBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </span>
+        </Link>
+
         {/* Quick Deploy Button */}
         <Link to="/deploy" className="hidden sm:block">
           <Button
@@ -148,14 +163,18 @@ export default function Topbar({
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-800/60 transition-colors"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white font-bold text-xs ring-2 ring-slate-800">
-              MN
+              {organization.contactName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .substring(0, 2)}
             </div>
             <div className="hidden xl:flex flex-col text-left">
               <span className="text-xs font-semibold text-slate-200 leading-none">
-                Mithun N S
+                {organization.contactName}
               </span>
               <span className="text-[10px] text-cyan-400 font-medium mt-0.5">
-                Tenant Owner
+                Tenant {organization.role}
               </span>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
@@ -170,12 +189,12 @@ export default function Topbar({
               />
               <div className="absolute right-0 mt-2 w-56 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
                 <div className="px-4 py-2.5 border-b border-slate-800">
-                  <p className="text-xs font-semibold text-white">Mithun N S</p>
+                  <p className="text-xs font-semibold text-white">{organization.contactName}</p>
                   <p className="text-[11px] text-slate-400 truncate">
-                    admin@infrapulse.cloud
+                    {organization.billingEmail}
                   </p>
                   <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    RBAC: Owner
+                    RBAC: {organization.role}
                   </span>
                 </div>
                 <div className="py-1 text-xs text-slate-300">
