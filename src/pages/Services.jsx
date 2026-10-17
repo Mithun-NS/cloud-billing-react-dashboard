@@ -30,6 +30,12 @@ import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useCloud } from '../context/CloudContext';
+import {
+  cloudServicesFunction,
+  cloudServiceMetricsFunction,
+  cloudServicePowerFunction,
+  cloudServiceScaleFunction,
+} from '../services/cloudApiService';
 
 // Pure pricing calculator utility
 const calculateDynamicCost = (specs) => {
@@ -58,6 +64,11 @@ export default function Services() {
     resizeService,
     terminateService,
   } = useCloud();
+
+  // On mount: trigger real HTTP telemetry request to /api/v1/cloud/services
+  useEffect(() => {
+    cloudServicesFunction();
+  }, []);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,17 +152,26 @@ export default function Services() {
     copyTimeoutRef.current = setTimeout(() => setCopiedIp(null), 2000);
   }, []);
 
-  const handlePowerToggle = useCallback((service) => {
-    if (service.status === 'active') {
-      updateServiceStatus(service._id, 'suspended');
-    } else {
-      updateServiceStatus(service._id, 'active');
-    }
+  // Explicit Named Handlers for DevTools Debugging & Inspect
+  const cloudServiceCopyIpFunction = useCallback((ip) => {
+    navigator.clipboard.writeText(ip);
+    setCopiedIp(ip);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopiedIp(null), 2000);
+  }, []);
+
+  const cloudServicePowerToggleFunction = useCallback((service) => {
+    const nextStatus = service.status === 'active' ? 'suspended' : 'active';
+    const actionLabel = service.status === 'active' ? 'stop' : 'start';
+    console.info(`%c[CloudPowerFunction]%c ${actionLabel.toUpperCase()} node ${service._id} (${service.name})`, 'color: #f43f5e; font-weight: bold;', 'color: #fda4af;');
+    cloudServicePowerFunction(service._id, actionLabel);
+    updateServiceStatus(service._id, nextStatus);
   }, [updateServiceStatus]);
 
-  const handleReboot = useCallback((service) => {
+  const cloudServiceRebootFunction = useCallback((service) => {
     if (rebootingIds.has(service._id)) return;
-
+    console.info(`%c[CloudRebootFunction]%c ACPI soft reset initiated for ${service._id} (${service.name})`, 'color: #06b6d4; font-weight: bold;', 'color: #67e8f9;');
+    cloudServicePowerFunction(service._id, 'reboot');
     setRebootingIds((prev) => new Set(prev).add(service._id));
 
     if (rebootTimeoutsRef.current[service._id]) {
@@ -169,7 +189,8 @@ export default function Services() {
     }, 2400);
   }, [rebootingIds, updateServiceStatus]);
 
-  const openResizeModal = useCallback((service) => {
+  const cloudServiceResizeModalOpenFunction = useCallback((service) => {
+    console.info(`%c[CloudScaleFunction]%c Modifying plan for ${service._id} (${service.name})`, 'color: #38bdf8; font-weight: bold;', 'color: #bae6fd;');
     setSelectedService(service);
     setResizeSpecs({
       vcpu: service.specs?.vcpu || 2,
@@ -179,47 +200,60 @@ export default function Services() {
     setIsResizeOpen(true);
   }, []);
 
-  const handleApplyResize = useCallback(() => {
+  const cloudServiceApplyResizeFunction = useCallback(() => {
     if (!selectedService) return;
     const newMonthlyCost = calculateDynamicCost(resizeSpecs);
+    console.info(`%c[CloudScaleFunction]%c Applying hypervisor resizing to ${selectedService._id}`, 'color: #10b981; font-weight: bold;', 'color: #6ee7b7;', resizeSpecs);
+    cloudServiceScaleFunction(selectedService._id, resizeSpecs);
     resizeService(selectedService._id, resizeSpecs, newMonthlyCost);
     setIsResizeOpen(false);
   }, [selectedService, resizeSpecs, resizeService]);
 
-  const openDetailsModal = useCallback((service) => {
+  const cloudServiceDetailsModalOpenFunction = useCallback((service) => {
+    console.info(`%c[CloudDiagnosticsFunction]%c Inspecting live node telemetry for ${service._id}`, 'color: #a855f7; font-weight: bold;', 'color: #d8b4fe;');
+    cloudServiceMetricsFunction(service._id);
     setSelectedService(service);
     setIsDetailsOpen(true);
   }, []);
 
-  const openTerminateModal = useCallback((service) => {
+  const cloudServiceTerminateModalOpenFunction = useCallback((service) => {
     setSelectedService(service);
     setIsTerminateOpen(true);
   }, []);
 
-  const handleConfirmTerminate = useCallback(() => {
+  const cloudServiceConfirmTerminateFunction = useCallback(() => {
     if (!selectedService) return;
+    console.warn(`%c[CloudTerminateFunction]%c Terminating cloud instance ${selectedService._id}`, 'color: #ef4444; font-weight: bold;', 'color: #fca5a5;');
     terminateService(selectedService._id);
     setIsTerminateOpen(false);
   }, [selectedService, terminateService]);
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <div id="cloud-services-page" data-component="CloudServicesPage" className="space-y-6">
+      {/* Page Header with dedicated Cloud SVG Icon */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Cloud Services & Compute Nodes
-            </h1>
-            <Badge variant="primary" size="sm">
-              {services.length} Total Nodes
-            </Badge>
+        <div className="flex items-start gap-3.5">
+          <img
+            id="cloud-services-header-icon"
+            src="/icons/cloud-services.svg"
+            alt="Cloud Services Icon"
+            className="w-10 h-10 rounded-xl p-1.5 bg-cyan-950/40 border border-cyan-800/40 shrink-0 shadow-sm shadow-cyan-500/10"
+          />
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Cloud Services & Compute Nodes
+              </h1>
+              <Badge variant="primary" size="sm">
+                {services.length} Total Nodes
+              </Badge>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Manage provisioned virtual machines, database clusters, and block storage instances.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Manage provisioned virtual machines, database clusters, and block storage instances.
-          </p>
         </div>
-        <Link to="/deploy">
+        <Link to="/deploy" id="btn-deploy-new-instance" data-function="cloudDeployNavigationFunction">
           <Button variant="primary" size="sm" iconLeft={Plus}>
             New Server Instance
           </Button>
@@ -266,11 +300,13 @@ export default function Services() {
         }
       >
         {/* Search & Filters Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+        <div id="services-filter-toolbar" className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
+              id="input-search-services"
+              data-testid="search-services"
               type="text"
               placeholder="Search by server name, public IP, region..."
               value={searchQuery}
@@ -279,8 +315,9 @@ export default function Services() {
             />
             {searchQuery && (
               <button
+                id="btn-clear-search"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2 text-xs text-slate-400 hover:text-white"
+                className="absolute right-3 top-2 text-xs text-slate-400 hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -290,12 +327,14 @@ export default function Services() {
           {/* Status and Type Pills */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
             {/* Status Pills */}
-            <div className="flex items-center p-1 bg-slate-950/80 rounded-xl border border-slate-800">
+            <div id="filter-status-pills" className="flex items-center p-1 bg-slate-950/80 rounded-xl border border-slate-800">
               {['all', 'active', 'suspended', 'provisioning'].map((st) => (
                 <button
                   key={st}
+                  id={`btn-filter-status-${st}`}
+                  data-status={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded-lg capitalize transition-colors font-medium text-[11px] ${
+                  className={`px-2.5 py-1 rounded-lg capitalize transition-colors font-medium text-[11px] cursor-pointer ${
                     statusFilter === st
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                       : 'text-slate-400 hover:text-slate-200'
@@ -308,9 +347,10 @@ export default function Services() {
 
             {/* Type Filter Select */}
             <select
+              id="select-service-type"
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-1.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+              className="px-3 py-1.5 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-cyan-500 cursor-pointer"
             >
               <option value="all">All Service Types</option>
               <option value="Compute VM">Compute VM</option>
@@ -322,7 +362,7 @@ export default function Services() {
 
         {/* Data Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table id="cloud-services-table" data-component="ServicesTable" className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 text-[11px]">
                 <th className="pb-3 font-semibold">Instance & OS</th>
@@ -351,6 +391,9 @@ export default function Services() {
                   return (
                     <tr
                       key={service._id}
+                      id={`service-row-${service._id}`}
+                      data-service-name={service.name}
+                      data-service-status={service.status}
                       className="hover:bg-slate-850/40 transition-colors group"
                     >
                       {/* 1. Instance & OS */}
@@ -361,7 +404,11 @@ export default function Services() {
                           </div>
                           <div>
                             <button
-                              onClick={() => openDetailsModal(service)}
+                              id={`btn-open-diagnostics-${service._id}`}
+                              data-action="view-diagnostics"
+                              data-function="cloudServiceDetailsModalOpenFunction"
+                              data-service-id={service._id}
+                              onClick={() => cloudServiceDetailsModalOpenFunction(service)}
                               className="font-semibold text-slate-200 hover:text-cyan-400 text-left transition-colors font-mono truncate max-w-[170px] block cursor-pointer"
                             >
                               {service.name}
@@ -379,7 +426,11 @@ export default function Services() {
                           <div className="flex items-center gap-1.5 text-slate-200">
                             <span>{service.ipAddress}</span>
                             <button
-                              onClick={() => handleCopyIp(service.ipAddress)}
+                              id={`btn-copy-ip-${service._id}`}
+                              data-action="copy-ip"
+                              data-function="cloudServiceCopyIpFunction"
+                              data-service-id={service._id}
+                              onClick={() => cloudServiceCopyIpFunction(service.ipAddress)}
                               className="text-slate-400 hover:text-white transition-colors cursor-pointer"
                               title="Copy Public IP"
                             >
@@ -464,7 +515,11 @@ export default function Services() {
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Power Start/Stop */}
                           <button
-                            onClick={() => handlePowerToggle(service)}
+                            id={`btn-power-toggle-${service._id}`}
+                            data-action="toggle-power"
+                            data-function="cloudServicePowerToggleFunction"
+                            data-service-id={service._id}
+                            onClick={() => cloudServicePowerToggleFunction(service)}
                             disabled={isRebooting || service.status === 'provisioning'}
                             className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                               service.status === 'active'
@@ -482,7 +537,11 @@ export default function Services() {
 
                           {/* Reboot Button */}
                           <button
-                            onClick={() => handleReboot(service)}
+                            id={`btn-reboot-node-${service._id}`}
+                            data-action="reboot-node"
+                            data-function="cloudServiceRebootFunction"
+                            data-service-id={service._id}
+                            onClick={() => cloudServiceRebootFunction(service)}
                             disabled={service.status !== 'active' || isRebooting}
                             className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             title="Graceful ACPI Reboot"
@@ -494,7 +553,11 @@ export default function Services() {
 
                           {/* Dynamic Scaling Slider Modal */}
                           <button
-                            onClick={() => openResizeModal(service)}
+                            id={`btn-scale-specs-${service._id}`}
+                            data-action="modify-plan"
+                            data-function="cloudServiceResizeModalOpenFunction"
+                            data-service-id={service._id}
+                            onClick={() => cloudServiceResizeModalOpenFunction(service)}
                             className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer"
                             title="Modify Plan & Scale Specs"
                           >
@@ -503,7 +566,11 @@ export default function Services() {
 
                           {/* Technical Specs Info */}
                           <button
-                            onClick={() => openDetailsModal(service)}
+                            id={`btn-diagnostics-${service._id}`}
+                            data-action="view-diagnostics"
+                            data-function="cloudServiceDetailsModalOpenFunction"
+                            data-service-id={service._id}
+                            onClick={() => cloudServiceDetailsModalOpenFunction(service)}
                             className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer"
                             title="View Technical Specs"
                           >
@@ -512,7 +579,11 @@ export default function Services() {
 
                           {/* Terminate Instance */}
                           <button
-                            onClick={() => openTerminateModal(service)}
+                            id={`btn-terminate-node-${service._id}`}
+                            data-action="terminate-node"
+                            data-function="cloudServiceTerminateModalOpenFunction"
+                            data-service-id={service._id}
+                            onClick={() => cloudServiceTerminateModalOpenFunction(service)}
                             className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
                             title="Terminate Node"
                           >
@@ -546,10 +617,13 @@ export default function Services() {
               Cancel
             </Button>
             <Button
+              id="btn-apply-scaled-specs"
+              data-action="apply-scaled-specs"
+              data-function="cloudServiceApplyResizeFunction"
               variant="primary"
               size="sm"
               iconLeft={CheckCircle2}
-              onClick={handleApplyResize}
+              onClick={cloudServiceApplyResizeFunction}
             >
               Apply Scaled Specs
             </Button>
@@ -786,10 +860,13 @@ export default function Services() {
               Cancel
             </Button>
             <Button
+              id="btn-confirm-terminate-node"
+              data-action="confirm-terminate-node"
+              data-function="cloudServiceConfirmTerminateFunction"
               variant="danger"
               size="sm"
               iconLeft={Trash2}
-              onClick={handleConfirmTerminate}
+              onClick={cloudServiceConfirmTerminateFunction}
             >
               Permanently Terminate Node
             </Button>
