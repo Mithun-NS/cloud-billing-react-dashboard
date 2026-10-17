@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Server,
@@ -31,6 +31,26 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useCloud } from '../context/CloudContext';
 
+// Pure pricing calculator utility
+const calculateDynamicCost = (specs) => {
+  const vcpuCost = (specs.vcpu || 1) * 400;
+  const ramCost = (specs.ramGb || 1) * 150;
+  const diskCost = Math.round((specs.diskGb || 20) * 2.2);
+  return vcpuCost + ramCost + diskCost;
+};
+
+// Pure icon selector utility
+const getServiceIcon = (type) => {
+  switch (type) {
+    case 'Managed Database':
+      return Database;
+    case 'Block Storage':
+      return HardDrive;
+    default:
+      return Server;
+  }
+};
+
 export default function Services() {
   const {
     services,
@@ -46,9 +66,19 @@ export default function Services() {
 
   // Clipboard copy state
   const [copiedIp, setCopiedIp] = useState(null);
+  const copyTimeoutRef = useRef(null);
 
   // Temporary rebooting instances tracker (for realistic 2.5s ACPI reboot simulation)
   const [rebootingIds, setRebootingIds] = useState(new Set());
+  const rebootTimeoutsRef = useRef({});
+
+  // Clean up all pending timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      Object.values(rebootTimeoutsRef.current).forEach(clearTimeout);
+    };
+  }, []);
 
   // Modal States
   const [selectedService, setSelectedService] = useState(null);
@@ -63,108 +93,114 @@ export default function Services() {
     diskGb: 80,
   });
 
-  // Calculate dynamic price based on specs
-  const calculateDynamicCost = (specs) => {
-    // Formula: vCPU * ₹400 + RAM * ₹150 + Disk * ₹2 (base hypervisor tier)
-    const vcpuCost = (specs.vcpu || 1) * 400;
-    const ramCost = (specs.ramGb || 1) * 150;
-    const diskCost = Math.round((specs.diskGb || 20) * 2.2);
-    return vcpuCost + ramCost + diskCost;
-  };
+  // Optimized single-pass cluster metrics calculation
+  const clusterStats = useMemo(() => {
+    let active = 0;
+    let suspended = 0;
+    let totalVcpu = 0;
+    let totalRam = 0;
 
-  // Filtered Services List
-  const filteredServices = services.filter((service) => {
-    const matchesSearch =
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.ipAddress.includes(searchQuery) ||
-      (service.privateIp && service.privateIp.includes(searchQuery)) ||
-      service.regionLabel.toLowerCase().includes(searchQuery.toLowerCase());
+    for (let i = 0; i < services.length; i++) {
+      const s = services[i];
+      if (s.status === 'active') active++;
+      else if (s.status === 'suspended') suspended++;
+      totalVcpu += s.specs?.vcpu || 0;
+      totalRam += s.specs?.ramGb || 0;
+    }
 
-    const matchesStatus =
-      statusFilter === 'all' || service.status === statusFilter;
+    return { active, suspended, totalVcpu, totalRam };
+  }, [services]);
 
-    const matchesType =
-      typeFilter === 'all' || service.type === typeFilter;
+  // Memoized Filtered Services List
+  const filteredServices = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
 
-    return matchesSearch && matchesStatus && matchesType;
-  });
+    return services.filter((service) => {
+      const matchesSearch =
+        !query ||
+        service.name.toLowerCase().includes(query) ||
+        service.ipAddress.includes(query) ||
+        (service.privateIp && service.privateIp.includes(query)) ||
+        service.regionLabel.toLowerCase().includes(query);
 
-  // Copy IP handler
-  const handleCopyIp = (ip) => {
+      const matchesStatus =
+        statusFilter === 'all' || service.status === statusFilter;
+
+      const matchesType =
+        typeFilter === 'all' || service.type === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [services, searchQuery, statusFilter, typeFilter]);
+
+  // Memoized Handlers
+  const handleCopyIp = useCallback((ip) => {
     navigator.clipboard.writeText(ip);
     setCopiedIp(ip);
-    setTimeout(() => setCopiedIp(null), 2000);
-  };
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    copyTimeoutRef.current = setTimeout(() => setCopiedIp(null), 2000);
+  }, []);
 
-  // Power actions
-  const handlePowerToggle = (service) => {
+  const handlePowerToggle = useCallback((service) => {
     if (service.status === 'active') {
       updateServiceStatus(service._id, 'suspended');
     } else {
       updateServiceStatus(service._id, 'active');
     }
-  };
+  }, [updateServiceStatus]);
 
-  const handleReboot = (service) => {
+  const handleReboot = useCallback((service) => {
     if (rebootingIds.has(service._id)) return;
 
     setRebootingIds((prev) => new Set(prev).add(service._id));
-    setTimeout(() => {
+
+    if (rebootTimeoutsRef.current[service._id]) {
+      clearTimeout(rebootTimeoutsRef.current[service._id]);
+    }
+
+    rebootTimeoutsRef.current[service._id] = setTimeout(() => {
       setRebootingIds((prev) => {
         const next = new Set(prev);
         next.delete(service._id);
         return next;
       });
+      delete rebootTimeoutsRef.current[service._id];
       updateServiceStatus(service._id, 'active');
     }, 2400);
-  };
+  }, [rebootingIds, updateServiceStatus]);
 
-  // Open Resize Modal
-  const openResizeModal = (service) => {
+  const openResizeModal = useCallback((service) => {
     setSelectedService(service);
     setResizeSpecs({
-      vcpu: service.specs.vcpu || 2,
-      ramGb: service.specs.ramGb || 4,
-      diskGb: service.specs.diskGb || 80,
+      vcpu: service.specs?.vcpu || 2,
+      ramGb: service.specs?.ramGb || 4,
+      diskGb: service.specs?.diskGb || 80,
     });
     setIsResizeOpen(true);
-  };
+  }, []);
 
-  const handleApplyResize = () => {
+  const handleApplyResize = useCallback(() => {
     if (!selectedService) return;
     const newMonthlyCost = calculateDynamicCost(resizeSpecs);
     resizeService(selectedService._id, resizeSpecs, newMonthlyCost);
     setIsResizeOpen(false);
-  };
+  }, [selectedService, resizeSpecs, resizeService]);
 
-  // Open Details Modal
-  const openDetailsModal = (service) => {
+  const openDetailsModal = useCallback((service) => {
     setSelectedService(service);
     setIsDetailsOpen(true);
-  };
+  }, []);
 
-  // Open Terminate Modal
-  const openTerminateModal = (service) => {
+  const openTerminateModal = useCallback((service) => {
     setSelectedService(service);
     setIsTerminateOpen(true);
-  };
+  }, []);
 
-  const handleConfirmTerminate = () => {
+  const handleConfirmTerminate = useCallback(() => {
     if (!selectedService) return;
     terminateService(selectedService._id);
     setIsTerminateOpen(false);
-  };
-
-  const getServiceIcon = (type) => {
-    switch (type) {
-      case 'Managed Database':
-        return Database;
-      case 'Block Storage':
-        return HardDrive;
-      default:
-        return Server;
-    }
-  };
+  }, [selectedService, terminateService]);
 
   return (
     <div className="space-y-6">
@@ -190,30 +226,30 @@ export default function Services() {
         </Link>
       </div>
 
-      {/* Quick Summary Strip */}
+      {/* Quick Summary Strip (Single-pass memoized) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
           <span className="text-[11px] text-slate-400">Active Instances</span>
           <p className="text-xl font-bold text-emerald-400 font-mono mt-0.5">
-            {services.filter((s) => s.status === 'active').length}
+            {clusterStats.active}
           </p>
         </div>
         <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
           <span className="text-[11px] text-slate-400">Suspended / Stopped</span>
           <p className="text-xl font-bold text-rose-400 font-mono mt-0.5">
-            {services.filter((s) => s.status === 'suspended').length}
+            {clusterStats.suspended}
           </p>
         </div>
         <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
           <span className="text-[11px] text-slate-400">Total vCPU Cores</span>
           <p className="text-xl font-bold text-white font-mono mt-0.5">
-            {services.reduce((sum, s) => sum + (s.specs.vcpu || 0), 0)} Cores
+            {clusterStats.totalVcpu} Cores
           </p>
         </div>
         <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800">
           <span className="text-[11px] text-slate-400">Total Allocated RAM</span>
           <p className="text-xl font-bold text-cyan-400 font-mono mt-0.5">
-            {services.reduce((sum, s) => sum + (s.specs.ramGb || 0), 0)} GB
+            {clusterStats.totalRam} GB
           </p>
         </div>
       </div>
@@ -326,7 +362,7 @@ export default function Services() {
                           <div>
                             <button
                               onClick={() => openDetailsModal(service)}
-                              className="font-semibold text-slate-200 hover:text-cyan-400 text-left transition-colors font-mono truncate max-w-[170px] block"
+                              className="font-semibold text-slate-200 hover:text-cyan-400 text-left transition-colors font-mono truncate max-w-[170px] block cursor-pointer"
                             >
                               {service.name}
                             </button>
@@ -344,7 +380,7 @@ export default function Services() {
                             <span>{service.ipAddress}</span>
                             <button
                               onClick={() => handleCopyIp(service.ipAddress)}
-                              className="text-slate-400 hover:text-white transition-colors"
+                              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
                               title="Copy Public IP"
                             >
                               {copiedIp === service.ipAddress ? (
@@ -385,10 +421,10 @@ export default function Services() {
                       <td className="py-3.5 px-3 font-mono text-[11px]">
                         <div className="space-y-0.5">
                           <span className="text-slate-200 font-medium">
-                            {service.specs.vcpu} vCPU • {service.specs.ramGb} GB RAM
+                            {service.specs?.vcpu || 0} vCPU • {service.specs?.ramGb || 0} GB RAM
                           </span>
                           <p className="text-slate-400 text-[10px]">
-                            {service.specs.diskGb} GB NVMe • {service.specs.bandwidthTb} TB Net
+                            {service.specs?.diskGb || 0} GB NVMe • {service.specs?.bandwidthTb || 0} TB Net
                           </p>
                         </div>
                       </td>
@@ -430,7 +466,7 @@ export default function Services() {
                           <button
                             onClick={() => handlePowerToggle(service)}
                             disabled={isRebooting || service.status === 'provisioning'}
-                            className={`p-1.5 rounded-lg border transition-all ${
+                            className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                               service.status === 'active'
                                 ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border-rose-500/20 hover:border-rose-500/40'
                                 : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20 hover:border-emerald-500/40'
@@ -448,7 +484,7 @@ export default function Services() {
                           <button
                             onClick={() => handleReboot(service)}
                             disabled={service.status !== 'active' || isRebooting}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                             title="Graceful ACPI Reboot"
                           >
                             <RotateCw
@@ -459,7 +495,7 @@ export default function Services() {
                           {/* Dynamic Scaling Slider Modal */}
                           <button
                             onClick={() => openResizeModal(service)}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer"
                             title="Modify Plan & Scale Specs"
                           >
                             <Sliders className="w-3.5 h-3.5" />
@@ -468,7 +504,7 @@ export default function Services() {
                           {/* Technical Specs Info */}
                           <button
                             onClick={() => openDetailsModal(service)}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-800 hover:border-cyan-500/30 transition-all cursor-pointer"
                             title="View Technical Specs"
                           >
                             <Info className="w-3.5 h-3.5" />
@@ -477,7 +513,7 @@ export default function Services() {
                           {/* Terminate Instance */}
                           <button
                             onClick={() => openTerminateModal(service)}
-                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 transition-all"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
                             title="Terminate Node"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -560,7 +596,7 @@ export default function Services() {
                 step="1"
                 value={resizeSpecs.vcpu}
                 onChange={(e) =>
-                  setResizeSpecs({ ...resizeSpecs, vcpu: Number(e.target.value) })
+                  setResizeSpecs((prev) => ({ ...prev, vcpu: Number(e.target.value) }))
                 }
                 className="w-full accent-cyan-400 cursor-pointer"
               />
@@ -589,7 +625,7 @@ export default function Services() {
                 step="1"
                 value={resizeSpecs.ramGb}
                 onChange={(e) =>
-                  setResizeSpecs({ ...resizeSpecs, ramGb: Number(e.target.value) })
+                  setResizeSpecs((prev) => ({ ...prev, ramGb: Number(e.target.value) }))
                 }
                 className="w-full accent-indigo-400 cursor-pointer"
               />
@@ -619,7 +655,7 @@ export default function Services() {
                 step="10"
                 value={resizeSpecs.diskGb}
                 onChange={(e) =>
-                  setResizeSpecs({ ...resizeSpecs, diskGb: Number(e.target.value) })
+                  setResizeSpecs((prev) => ({ ...prev, diskGb: Number(e.target.value) }))
                 }
                 className="w-full accent-emerald-400 cursor-pointer"
               />
@@ -713,11 +749,11 @@ export default function Services() {
               <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs font-mono">
                 <div className="flex justify-between py-1 border-b border-slate-850">
                   <span className="text-slate-400">Dedicated vCPUs:</span>
-                  <span className="text-white">{selectedService.specs.vcpu} Cores (1:1 Allocation)</span>
+                  <span className="text-white">{selectedService.specs?.vcpu || 0} Cores (1:1 Allocation)</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-850">
                   <span className="text-slate-400">ECC DDR5 RAM:</span>
-                  <span className="text-white">{selectedService.specs.ramGb} GB Locked</span>
+                  <span className="text-white">{selectedService.specs?.ramGb || 0} GB Locked</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-850">
                   <span className="text-slate-400">IOPS Limit:</span>
@@ -769,7 +805,7 @@ export default function Services() {
                   You are terminating node: {selectedService.name}
                 </p>
                 <p className="mt-1 text-slate-300">
-                  The virtual disk ({selectedService.specs.diskGb} GB NVMe) will be cryptographically erased and the public IPv4 ({selectedService.ipAddress}) will be released to the pool.
+                  The virtual disk ({selectedService.specs?.diskGb || 0} GB NVMe) will be cryptographically erased and the public IPv4 ({selectedService.ipAddress}) will be released to the pool.
                 </p>
               </div>
             </div>
