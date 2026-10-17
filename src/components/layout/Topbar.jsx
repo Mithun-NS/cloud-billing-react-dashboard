@@ -39,13 +39,18 @@ export default function Topbar({
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80">
+    <header
+      id="infrapulse-topbar"
+      data-component="Topbar"
+      className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-slate-950/80 backdrop-blur-xl border-b border-slate-800/80"
+    >
       {/* Left section: Mobile toggle & Org Switcher */}
       <div className="flex items-center gap-3">
         {/* Mobile menu button */}
         <button
+          id="btn-toggle-mobile-menu"
           onClick={onOpenSidebar}
-          className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 lg:hidden transition-colors"
+          className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/80 lg:hidden transition-colors cursor-pointer"
           aria-label="Open sidebar"
         >
           <Menu className="w-5 h-5" />
@@ -54,8 +59,9 @@ export default function Topbar({
         {/* Organization Switcher Dropdown */}
         <div className="relative">
           <button
+            id="btn-switch-organization"
             onClick={() => setShowOrgDropdown(!showOrgDropdown)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 transition-all text-left text-xs sm:text-sm"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-slate-700 transition-all text-left text-xs sm:text-sm cursor-pointer"
           >
             <div className="flex items-center justify-center w-6 h-6 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
               <Building2 className="w-3.5 h-3.5" />
@@ -81,15 +87,19 @@ export default function Topbar({
                 className="fixed inset-0 z-40"
                 onClick={() => setShowOrgDropdown(false)}
               />
-              <div className="absolute left-0 mt-2 w-64 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
+              <div
+                id="menu-organization-dropdown"
+                className="absolute left-0 mt-2 w-64 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95"
+              >
                 <div className="px-3 py-2 border-b border-slate-800 text-[11px] font-medium text-slate-400">
                   Switch Tenant / Organization
                 </div>
                 {orgs.map((org) => (
                   <button
                     key={org.id}
+                    id={`btn-select-org-${org.id}`}
                     onClick={() => handleSelectOrg(org)}
-                    className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-slate-800/80 transition-colors ${
+                    className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-slate-800/80 transition-colors cursor-pointer ${
                       activeOrg === org.name ? 'bg-cyan-500/10 text-cyan-300' : 'text-slate-300'
                     }`}
                   >
@@ -110,7 +120,10 @@ export default function Topbar({
         </div>
 
         {/* Global Cluster Status Pill */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+        <div
+          id="pill-cluster-status"
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium"
+        >
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -124,8 +137,9 @@ export default function Topbar({
       <div className="flex items-center gap-3">
         {/* Wallet Balance Pill */}
         <Link
+          id="pill-wallet-balance"
           to="/billing"
-          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-medium transition-all"
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 text-xs font-medium transition-all cursor-pointer"
           title="Prepaid Credit Balance"
         >
           <Wallet className="w-3.5 h-3.5" />
@@ -135,7 +149,7 @@ export default function Topbar({
         </Link>
 
         {/* Quick Deploy Button */}
-        <Link to="/deploy" className="hidden sm:block">
+        <Link to="/deploy" id="btn-quick-deploy-vm" className="hidden sm:block">
           <Button
             size="sm"
             variant="primary"
@@ -148,7 +162,8 @@ export default function Topbar({
 
         {/* Notifications Icon Button */}
         <button
-          className="relative p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+          id="btn-cluster-notifications"
+          className="relative p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
           aria-label="View notifications"
           title="Cluster Notifications"
         >
@@ -159,8 +174,9 @@ export default function Topbar({
         {/* User Profile Switcher */}
         <div className="relative">
           <button
+            id="btn-user-profile-menu"
             onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-800/60 transition-colors"
+            className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-xl hover:bg-slate-800/60 transition-colors cursor-pointer"
           >
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white font-bold text-xs ring-2 ring-slate-800">
               {organization.contactName

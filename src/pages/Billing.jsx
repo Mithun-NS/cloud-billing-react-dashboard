@@ -6,17 +6,25 @@ import { Receipt, CreditCard, Wallet, Download, CheckCircle2 } from 'lucide-reac
 
 export default function Billing() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            Billing & Invoices
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Wallet balance, GST tax invoices (CGST/SGST/IGST), payment methods, and automated billing.
-          </p>
+    <div id="billing-page" data-component="BillingPage" className="space-y-6">
+      <div id="billing-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <img
+            id="billing-header-icon"
+            src="/icons/cloud-billing.svg"
+            alt="Billing and Invoices"
+            className="w-10 h-10 rounded-xl p-1.5 bg-amber-950/40 border border-amber-800/40 shrink-0 shadow-sm shadow-amber-500/10"
+          />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">
+              Billing & Invoices
+            </h1>
+            <p className="text-sm text-slate-400 mt-1">
+              Wallet balance, GST tax invoices (CGST/SGST/IGST), payment methods, and automated billing.
+            </p>
+          </div>
         </div>
-        <Button variant="primary" iconLeft={Wallet}>
+        <Button id="btn-recharge-wallet-billing" data-action="recharge-wallet" data-function="cloudWalletRechargeFunction" variant="primary" iconLeft={Wallet}>
           Recharge Wallet
         </Button>
       </div>

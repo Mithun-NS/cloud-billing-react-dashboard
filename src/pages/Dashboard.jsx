@@ -152,24 +152,35 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Cloud Infrastructure Overview
-            </h1>
-            <Badge variant="active" size="sm" dot>
-              Live Telemetry
-            </Badge>
+    <div id="overview-dashboard-page" data-component="OverviewDashboard" className="space-y-6">
+      {/* Page Header with dedicated Cloud SVG Icon */}
+      <div id="dashboard-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <img
+            id="dashboard-header-icon"
+            src="/icons/cloud-services.svg"
+            alt="Cloud Infrastructure"
+            className="w-10 h-10 rounded-xl p-1.5 bg-cyan-950/40 border border-cyan-800/40 shrink-0 shadow-sm shadow-cyan-500/10"
+          />
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold tracking-tight text-white">
+                Cloud Infrastructure Overview
+              </h1>
+              <Badge variant="active" size="sm" dot>
+                Live Telemetry
+              </Badge>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Real-time multi-tenant resource utilization, billing run-rate, and hypervisor health.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real-time multi-tenant resource utilization, billing run-rate, and hypervisor health.
-          </p>
         </div>
         <div className="flex items-center gap-2.5">
           <Button
+            id="btn-topup-credits-header"
+            data-action="topup-credits"
+            data-function="cloudWalletTopUpFunction"
             variant="outline"
             size="sm"
             iconLeft={Wallet}
@@ -177,7 +188,7 @@ export default function Dashboard() {
           >
             Top-up Credits
           </Button>
-          <Link to="/deploy">
+          <Link to="/deploy" id="btn-deploy-instance-header" data-function="cloudDeployNavigationFunction">
             <Button variant="primary" size="sm" iconLeft={Plus}>
               Deploy Instance
             </Button>

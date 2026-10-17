@@ -13,6 +13,10 @@ import {
   Zap,
 } from 'lucide-react';
 import { useCloud } from '../../context/CloudContext';
+import {
+  cloudServicesFunction,
+  cloudBillingInvoicesFunction,
+} from '../../services/cloudApiService';
 
 export default function Sidebar({
   isOpen,
@@ -23,30 +27,65 @@ export default function Sidebar({
   const { services, invoices } = useCloud();
   const unpaidCount = invoices.filter((i) => i.status === 'unpaid').length;
 
+  // Named Navigation Debug Handlers for Chrome DevTools
+  function cloudDashboardNavigationFunction() {
+    console.info('%c[CloudNavigation]%c cloudDashboardFunction() -> Live Overview', 'color: #3b82f6; font-weight: bold;', 'color: #60a5fa;');
+    if (window.innerWidth < 1024) onClose();
+  }
+
+  function cloudServicesNavigationFunction() {
+    console.info('%c[CloudNavigation]%c cloudServicesFunction() -> Fetching Cloud Instances', 'color: #06b6d4; font-weight: bold;', 'color: #38bdf8;');
+    cloudServicesFunction();
+    if (window.innerWidth < 1024) onClose();
+  }
+
+  function cloudDeployNavigationFunction() {
+    console.info('%c[CloudNavigation]%c cloudDeployFunction() -> Deploy Wizard Activated', 'color: #10b981; font-weight: bold;', 'color: #34d399;');
+    if (window.innerWidth < 1024) onClose();
+  }
+
+  function cloudBillingNavigationFunction() {
+    console.info('%c[CloudNavigation]%c cloudBillingInvoicesFunction() -> Fetching Billing & GST Ledgers', 'color: #f59e0b; font-weight: bold;', 'color: #fbbf24;');
+    cloudBillingInvoicesFunction();
+    if (window.innerWidth < 1024) onClose();
+  }
+
   const navItems = [
     {
+      id: 'nav-dashboard',
       to: '/',
       label: 'Live Dashboard',
       icon: LayoutDashboard,
       badge: 'Live',
+      functionName: 'cloudDashboardNavigationFunction',
+      onClick: cloudDashboardNavigationFunction,
     },
     {
+      id: 'nav-cloud-services',
       to: '/services',
       label: 'Cloud Services',
       icon: Server,
       badge: `${services.length}`,
+      functionName: 'cloudServicesNavigationFunction',
+      onClick: cloudServicesNavigationFunction,
     },
     {
+      id: 'nav-deploy-instance',
       to: '/deploy',
       label: 'Deploy Instance',
       icon: PlusCircle,
       highlight: true,
+      functionName: 'cloudDeployNavigationFunction',
+      onClick: cloudDeployNavigationFunction,
     },
     {
+      id: 'nav-billing-invoices',
       to: '/billing',
       label: 'Billing & Invoices',
       icon: Receipt,
       badge: unpaidCount > 0 ? `${unpaidCount} Due` : undefined,
+      functionName: 'cloudBillingNavigationFunction',
+      onClick: cloudBillingNavigationFunction,
     },
   ];
 
@@ -62,12 +101,14 @@ export default function Sidebar({
 
       {/* Sidebar Container */}
       <aside
+        id="infrapulse-sidebar"
+        data-component="Sidebar"
         className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-slate-950/95 lg:bg-slate-900/60 backdrop-blur-xl border-r border-slate-800 transition-all duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } ${isCollapsed ? 'w-20' : 'w-64'}`}
       >
         {/* Brand Header */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/80">
+        <div id="sidebar-brand-header" className="flex items-center justify-between h-16 px-4 border-b border-slate-800/80">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 text-white shadow-lg shadow-cyan-500/20 shrink-0">
               <Activity className="w-5 h-5 text-white" />
@@ -95,8 +136,9 @@ export default function Sidebar({
 
           {/* Desktop Collapse Toggle */}
           <button
+            id="btn-sidebar-collapse"
             onClick={onToggleCollapse}
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
             title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
           >
             {isCollapsed ? (
@@ -108,7 +150,7 @@ export default function Sidebar({
         </div>
 
         {/* Navigation Links */}
-        <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        <div id="sidebar-nav-container" className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
           {!isCollapsed && (
             <div className="px-3 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
               Control Plane
@@ -120,12 +162,14 @@ export default function Sidebar({
             return (
               <NavLink
                 key={item.to}
+                id={item.id}
+                data-testid={item.id}
+                data-nav-label={item.label}
+                data-function={item.functionName}
                 to={item.to}
-                onClick={() => {
-                  if (window.innerWidth < 1024) onClose();
-                }}
+                onClick={item.onClick}
                 className={({ isActive }) =>
-                  `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 ${
+                  `group relative flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-150 cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-cyan-500/15 via-blue-500/10 to-transparent text-cyan-300 border border-cyan-500/30 shadow-sm shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
